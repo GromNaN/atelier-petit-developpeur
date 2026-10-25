@@ -1,0 +1,8 @@
+{
+  "name": "RoboStudio - L'Atelier des Petits Développeurs",
+  "description": "Un jeu interactif et joyeux pour apprendre la création de logiciels et la logique de programmation aux enfants dès 7 ans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
