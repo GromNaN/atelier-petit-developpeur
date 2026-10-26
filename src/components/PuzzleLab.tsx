@@ -309,7 +309,7 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
           newPos: pos,
           collected: nextCollected,
           doorUnlocked: nextDoorOpen,
-          error: 'Aie ! Botty a sauté hors du terrain ! Fais attention au bord !',
+          error: 'Aïe ! Botty a sauté hors du terrain ! Fais attention au bord !',
         };
       }
 
@@ -317,6 +317,41 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       sound.playJump();
       nextPos = { x: targetX, y: targetY, dir: pos.dir };
       setBotPos(nextPos);
+
+      await sleep(350);
+      setIsJumping(false);
+
+      // Check obstacles on landing tile: the landing cell must NOT be occupied!
+      const obs = level.obstacles?.find((o) => o.x === targetX && o.y === targetY);
+      if (obs) {
+        if (obs.type === 'mud') {
+          return {
+            success: false,
+            newPos: nextPos,
+            collected: nextCollected,
+            doorUnlocked: nextDoorOpen,
+            error: 'Plouf ! Botty a atterri en plein dans la boue ! La case d’arrivée de ton saut ne doit pas être occupée.',
+          };
+        }
+        if (obs.type === 'wall') {
+          return {
+            success: false,
+            newPos: nextPos,
+            collected: nextCollected,
+            doorUnlocked: nextDoorOpen,
+            error: 'Aïe ! Botty a atterri sur un obstacle ! La case d’arrivée du saut doit être libre.',
+          };
+        }
+        if (obs.type === 'door_locked' && !nextDoorOpen) {
+          return {
+            success: false,
+            newPos: nextPos,
+            collected: nextCollected,
+            doorUnlocked: nextDoorOpen,
+            error: 'Aïe ! Botty a atterri contre la porte verrouillée ! La case d’arrivée est occupée.',
+          };
+        }
+      }
 
       // Check if landed on collectible star (keys require the 'collect' block)
       const jumpItem = level.collectibles?.find(
@@ -330,9 +365,6 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
           sound.playStarCollect();
         }
       }
-
-      await sleep(350);
-      setIsJumping(false);
 
       return { success: true, newPos: nextPos, collected: nextCollected, doorUnlocked: nextDoorOpen };
     }
