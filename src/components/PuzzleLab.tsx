@@ -46,6 +46,8 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
   const [isMoving, setIsMoving] = useState(false);
   const [isJumping, setIsJumping] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
+  const [isMudSplashed, setIsMudSplashed] = useState(false);
+  const [mudSplash, setMudSplash] = useState<{ x: number; y: number; id: number } | null>(null);
   const [collectedItems, setCollectedItems] = useState<string[]>([]);
   const [doorUnlocked, setDoorUnlocked] = useState(false);
 
@@ -63,6 +65,12 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
     resetLevel();
   }, [currentLevelIndex]);
 
+  const triggerMudSplash = (x: number, y: number) => {
+    sound.playMudSplash();
+    setMudSplash({ x, y, id: Date.now() });
+    setIsMudSplashed(true);
+  };
+
   const resetLevel = () => {
     abortControllerRef.current = true;
     setIsRunning(false);
@@ -70,6 +78,8 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
     setIsMoving(false);
     setIsJumping(false);
     setIsCelebrating(false);
+    setIsMudSplashed(false);
+    setMudSplash(null);
     setCollectedItems([]);
     setDoorUnlocked(false);
     setMessage(null);
@@ -150,6 +160,8 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
     setCollectedItems([]);
     setDoorUnlocked(false);
     setIsCelebrating(false);
+    setIsMudSplashed(false);
+    setMudSplash(null);
 
     sound.playRobotBeep();
     await sleep(400);
@@ -325,12 +337,13 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       const obs = level.obstacles?.find((o) => o.x === targetX && o.y === targetY);
       if (obs) {
         if (obs.type === 'mud') {
+          triggerMudSplash(targetX, targetY);
           return {
             success: false,
             newPos: nextPos,
             collected: nextCollected,
             doorUnlocked: nextDoorOpen,
-            error: 'Plouf ! Botty a atterri en plein dans la boue ! La case d’arrivée de ton saut ne doit pas être occupée.',
+            error: 'Plouf ! Botty a sauté en plein dans la boue ! Éclaboussures partout ! 💦 La case d’arrivée de ton saut ne doit pas être occupée.',
           };
         }
         if (obs.type === 'wall') {
@@ -423,12 +436,15 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       const obs = level.obstacles?.find((o) => o.x === targetX && o.y === targetY);
       if (obs) {
         if (obs.type === 'mud') {
+          const mudPos = { x: targetX, y: targetY, dir: pos.dir };
+          setBotPos(mudPos);
+          triggerMudSplash(targetX, targetY);
           return {
             success: false,
-            newPos: pos,
+            newPos: mudPos,
             collected: nextCollected,
             doorUnlocked: nextDoorOpen,
-            error: 'Plouf ! Botty est coincé dans la boue ! Contourne la flaque ou saute par-dessus !',
+            error: 'Plouf ! Botty a foncé dans la flaque de boue ! Des éclaboussures ont jailli ! 💦 Contourne la flaque ou saute par-dessus !',
           };
         }
         if (obs.type === 'wall') {
@@ -627,6 +643,8 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
             isMoving={isMoving}
             isJumping={isJumping}
             isCelebrating={isCelebrating}
+            isMudSplashed={isMudSplashed}
+            mudSplash={mudSplash}
             collectedItems={collectedItems}
             doorUnlocked={doorUnlocked}
           />

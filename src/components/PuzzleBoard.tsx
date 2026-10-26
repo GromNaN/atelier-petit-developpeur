@@ -1,6 +1,7 @@
 import React from 'react';
 import { Direction, PuzzleLevel } from '../types';
 import { RobotSprite } from './RobotSprite';
+import { MudSplashEffect } from './MudSplashEffect';
 
 interface PuzzleBoardProps {
   level: PuzzleLevel;
@@ -8,6 +9,8 @@ interface PuzzleBoardProps {
   isMoving: boolean;
   isJumping: boolean;
   isCelebrating: boolean;
+  isMudSplashed?: boolean;
+  mudSplash?: { x: number; y: number; id: number } | null;
   collectedItems: string[]; // e.g., 'star-3-1', 'key-2-0'
   doorUnlocked: boolean;
 }
@@ -18,6 +21,8 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   isMoving,
   isJumping,
   isCelebrating,
+  isMudSplashed = false,
+  mudSplash = null,
   collectedItems,
   doorUnlocked,
 }) => {
@@ -151,6 +156,16 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             );
           })}
 
+          {/* Mud Splash Visual Effect */}
+          {mudSplash && (
+            <MudSplashEffect
+              key={`mud-splash-${mudSplash.id}`}
+              x={mudSplash.x}
+              y={mudSplash.y}
+              cellSize={cellSize}
+            />
+          )}
+
           {/* Animated Robot "Botty" */}
           <div
             className="absolute flex items-center justify-center transition-all duration-300 ease-out z-20 pointer-events-none"
@@ -166,6 +181,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
               isMoving={isMoving}
               isJumping={isJumping}
               isCelebrating={isCelebrating}
+              isMudSplashed={isMudSplashed}
               hasKey={collectedItems.some((k) => k.startsWith('key-'))}
               size={54}
             />

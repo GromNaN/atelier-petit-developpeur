@@ -231,6 +231,75 @@ class SoundManager {
     osc.start();
     osc.stop(now + 0.12);
   }
+
+  public playMudSplash() {
+    if (this.muted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    // 1. Wet plouf body: deep descending frequency with comic bubble drop
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.28);
+
+    oscGain.gain.setValueAtTime(0.35, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+    osc.connect(oscGain);
+    oscGain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.28);
+
+    // 2. High "squelch/bloop" pop
+    const popOsc = this.ctx.createOscillator();
+    const popGain = this.ctx.createGain();
+    popOsc.type = 'sine';
+    popOsc.frequency.setValueAtTime(580, now + 0.03);
+    popOsc.frequency.exponentialRampToValueAtTime(110, now + 0.16);
+
+    popGain.gain.setValueAtTime(0.28, now + 0.03);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    popOsc.connect(popGain);
+    popGain.connect(this.ctx.destination);
+    popOsc.start(now + 0.03);
+    popOsc.stop(now + 0.18);
+
+    // 3. Splash spray noise burst (filtered noise for liquid splash spray)
+    try {
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.22);
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noiseNode = this.ctx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(750, now);
+      filter.frequency.exponentialRampToValueAtTime(260, now + 0.2);
+      filter.Q.value = 1.6;
+
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.22, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      noiseNode.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.ctx.destination);
+
+      noiseNode.start(now);
+      noiseNode.stop(now + 0.2);
+    } catch {
+      // AudioBuffer fallback ignored
+    }
+  }
 }
 
 export const sound = new SoundManager();

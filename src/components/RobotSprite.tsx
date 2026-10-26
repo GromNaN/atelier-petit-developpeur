@@ -6,6 +6,7 @@ interface RobotSpriteProps {
   isMoving?: boolean;
   isJumping?: boolean;
   isCelebrating?: boolean;
+  isMudSplashed?: boolean;
   hasKey?: boolean;
   size?: number;
 }
@@ -15,6 +16,7 @@ export const RobotSprite: React.FC<RobotSpriteProps> = ({
   isMoving = false,
   isJumping = false,
   isCelebrating = false,
+  isMudSplashed = false,
   hasKey = false,
   size = 56,
 }) => {
@@ -31,7 +33,13 @@ export const RobotSprite: React.FC<RobotSpriteProps> = ({
   return (
     <div
       className={`relative inline-flex items-center justify-center transition-transform duration-300 ${
-        isCelebrating ? 'animate-bounce' : isMoving ? 'scale-105' : ''
+        isCelebrating
+          ? 'animate-bounce'
+          : isMudSplashed
+          ? 'animate-wiggle'
+          : isMoving
+          ? 'scale-105'
+          : ''
       }`}
       style={{
         width: size,
@@ -80,6 +88,14 @@ export const RobotSprite: React.FC<RobotSpriteProps> = ({
             <path d="M 38 34 Q 42 28 46 34" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" fill="none" />
             <path d="M 54 34 Q 58 28 62 34" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" fill="none" />
           </>
+        ) : isMudSplashed ? (
+          // Surprised shocked dizzy eyes @ _ @
+          <>
+            <circle cx="42" cy="33" r="5" fill="#f59e0b" />
+            <circle cx="42" cy="33" r="2" fill="#0f172a" />
+            <circle cx="58" cy="33" r="5" fill="#f59e0b" />
+            <circle cx="58" cy="33" r="2" fill="#0f172a" />
+          </>
         ) : (
           // Normal friendly big pupils
           <>
@@ -88,6 +104,18 @@ export const RobotSprite: React.FC<RobotSpriteProps> = ({
             <circle cx="58" cy="33" r="4" fill="#38bdf8" />
             <circle cx="59" cy="32" r="1.5" fill="#ffffff" />
           </>
+        )}
+
+        {/* Mud splatters on robot body when splashed */}
+        {isMudSplashed && (
+          <g opacity="0.95">
+            <circle cx="34" cy="56" r="5.5" fill="#5c2a07" />
+            <circle cx="65" cy="50" r="4.5" fill="#78350f" />
+            <circle cx="48" cy="74" r="5" fill="#5c2a07" />
+            <circle cx="30" cy="24" r="3.5" fill="#92400e" />
+            <circle cx="66" cy="22" r="3" fill="#78350f" />
+            <path d="M 40 85 Q 45 88 50 85 Q 55 88 60 85" stroke="#5c2a07" strokeWidth="3" strokeLinecap="round" />
+          </g>
         )}
 
         {/* Robot Hands/Arms */}
