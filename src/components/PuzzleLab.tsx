@@ -318,18 +318,16 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       nextPos = { x: targetX, y: targetY, dir: pos.dir };
       setBotPos(nextPos);
 
-      // Check if landed on collectible
-      const jumpItem = level.collectibles?.find((c) => c.x === targetX && c.y === targetY);
+      // Check if landed on collectible star (keys require the 'collect' block)
+      const jumpItem = level.collectibles?.find(
+        (c) => c.x === targetX && c.y === targetY && c.type === 'star'
+      );
       if (jumpItem) {
         const itemKey = `${jumpItem.type}-${jumpItem.x}-${jumpItem.y}`;
         if (!nextCollected.includes(itemKey)) {
           nextCollected.push(itemKey);
           setCollectedItems(nextCollected);
           sound.playStarCollect();
-          if (jumpItem.type === 'key') {
-            nextDoorOpen = true;
-            setDoorUnlocked(true);
-          }
         }
       }
 
@@ -340,7 +338,7 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
     }
 
     if (type === 'collect') {
-      // Collect item at current cell
+      // Collect item (especially key) at current cell
       const found = level.collectibles?.find((c) => c.x === pos.x && c.y === pos.y);
       if (found) {
         const itemKey = `${found.type}-${found.x}-${found.y}`;
@@ -351,9 +349,14 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
           if (found.type === 'key') {
             nextDoorOpen = true;
             setDoorUnlocked(true);
+            setMessage('Bravo ! Tu as ramassé la clé dorée 🔑 ! La porte magique s’ouvre !');
+            setMessageType('info');
           }
         }
+      } else {
+        sound.playRobotBeep();
       }
+      await sleep(300);
       return { success: true, newPos: nextPos, collected: nextCollected, doorUnlocked: nextDoorOpen };
     }
 
@@ -411,7 +414,7 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
             newPos: pos,
             collected: nextCollected,
             doorUnlocked: nextDoorOpen,
-            error: 'La porte bleue est fermée à clé ! Ramasse d’abord la clé dorée 🔑.',
+            error: 'La porte bleue est fermée à clé ! Va sur la case de la clé et utilise le bloc "Ramasser l’objet" 🔑.',
           };
         }
       }
@@ -421,18 +424,16 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       nextPos = { x: targetX, y: targetY, dir: pos.dir };
       setBotPos(nextPos);
 
-      // Auto collect item (star or key) if stepped onto it
-      const autoItem = level.collectibles?.find((c) => c.x === targetX && c.y === targetY);
+      // Auto collect stars when walking over them (keys require explicit 'collect' block)
+      const autoItem = level.collectibles?.find(
+        (c) => c.x === targetX && c.y === targetY && c.type === 'star'
+      );
       if (autoItem) {
         const itemKey = `${autoItem.type}-${autoItem.x}-${autoItem.y}`;
         if (!nextCollected.includes(itemKey)) {
           nextCollected.push(itemKey);
           setCollectedItems(nextCollected);
           sound.playStarCollect();
-          if (autoItem.type === 'key') {
-            nextDoorOpen = true;
-            setDoorUnlocked(true);
-          }
         }
       }
 
