@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+    <linearGradient id="robotBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </linearGradient>
+    <linearGradient id="visorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect width="64" height="64" rx="16" fill="url(#bgGrad)" />
+
+  <!-- Robot Antenna -->
+  <path d="M32 16V9" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+  <circle cx="32" cy="7" r="4" fill="url(#glowGrad)" />
+
+  <!-- Ear bolts -->
+  <rect x="8" y="27" width="5" height="10" rx="2.5" fill="#38bdf8" />
+  <rect x="51" y="27" width="5" height="10" rx="2.5" fill="#38bdf8" />
+
+  <!-- Robot Head -->
+  <rect x="11" y="16" width="42" height="34" rx="10" fill="url(#robotBody)" stroke="#38bdf8" stroke-width="2" />
+
+  <!-- Visor screen -->
+  <rect x="16" y="22" width="32" height="18" rx="6" fill="url(#visorGrad)" />
+
+  <!-- Friendly Eyes -->
+  <circle cx="25" cy="30" r="3.5" fill="#38bdf8" />
+  <circle cx="26" cy="29" r="1.2" fill="#ffffff" />
+  <circle cx="39" cy="30" r="3.5" fill="#38bdf8" />
+  <circle cx="40" cy="29" r="1.2" fill="#ffffff" />
+
+  <!-- Cute smile -->
+  <path d="M28 35.5 Q32 38.5 36 35.5" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" fill="none" />
+
+  <!-- Rosy cheeks -->
+  <ellipse cx="19" cy="34" rx="1.8" ry="1.2" fill="#f43f5e" opacity="0.75" />
+  <ellipse cx="45" cy="34" rx="1.8" ry="1.2" fill="#f43f5e" opacity="0.75" />
+
+  <!-- Neck/Chest base hint -->
+  <path d="M24 50H40C40 54 36 57 32 57C28 57 24 54 24 50Z" fill="#38bdf8" />
+</svg>
