@@ -120,19 +120,27 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
     setMessage(null);
   };
 
+  const isRepeatBlock = (b?: BlockType): boolean =>
+    b === 'repeat_2' || b === 'repeat_3' || b === 'repeat_4';
+
   // Helper to expand loops like repeat_4 + forward
   const compileInstructions = (blocks: BlockType[]): BlockType[] => {
     const flat: BlockType[] = [];
     let i = 0;
     while (i < blocks.length) {
       const b = blocks[i];
-      if (b === 'repeat_2' || b === 'repeat_3' || b === 'repeat_4') {
+      if (isRepeatBlock(b)) {
         const count = b === 'repeat_2' ? 2 : b === 'repeat_3' ? 3 : 4;
-        const nextBlock = blocks[i + 1] || 'forward';
-        for (let c = 0; c < count; c++) {
-          flat.push(nextBlock);
+        const nextBlock = blocks[i + 1];
+        if (nextBlock && !isRepeatBlock(nextBlock)) {
+          for (let c = 0; c < count; c++) {
+            flat.push(nextBlock);
+          }
+          i += 2; // consumed loop and child
+        } else {
+          // Empty loop: nothing to repeat! Do nothing.
+          i += 1;
         }
-        i += 2; // consumed loop and child
       } else {
         flat.push(b);
         i++;
@@ -178,12 +186,20 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       const block = program[step];
 
       // Handle Repeat blocks
-      if (block === 'repeat_2' || block === 'repeat_3' || block === 'repeat_4') {
+      if (isRepeatBlock(block)) {
         const count = block === 'repeat_2' ? 2 : block === 'repeat_3' ? 3 : 4;
-        const childBlock = program[step + 1] || 'forward';
+        const childBlock = program[step + 1];
+
+        // If repeat block is alone or followed by another repeat block: do nothing!
+        if (!childBlock || isRepeatBlock(childBlock)) {
+          await sleep(250);
+          continue;
+        }
 
         for (let sub = 0; sub < count; sub++) {
           if (abortControllerRef.current) break;
+          // Highlight the child action block being repeated
+          setActiveStepIndex(step + 1);
           const result = await executeSingleAction(childBlock, currentPos, currentCollected, currentDoorUnlocked);
           if (!result.success) {
             handleFailedRun(result.error || 'Erreur d’exécution !');
@@ -235,7 +251,14 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
       onLevelComplete(level.id);
     } else if (!reachedGoal) {
       sound.playError();
-      setMessage('Botty n’a pas atteint le drapeau d’arrivée ! Réfléchis aux étapes manquantes.');
+      const hasEmptyRepeat = program.some(
+        (b, i) => isRepeatBlock(b) && (!program[i + 1] || isRepeatBlock(program[i + 1]))
+      );
+      if (hasEmptyRepeat) {
+        setMessage('Ta boucle est vide ! Ajoute un bloc (comme "Avancer") juste après pour dire à Botty quoi répéter.');
+      } else {
+        setMessage('Botty n’a pas atteint le drapeau d’arrivée ! Réfléchis aux étapes manquantes.');
+      }
       setMessageType('error');
     } else if (!hasRequiredStars) {
       sound.playError();
@@ -502,12 +525,45 @@ export const PuzzleLab: React.FC<PuzzleLabProps> = ({
   };
 
   // Generate real code string for the inspector
-  const pythonCode = program
-    .map((b) => ALL_BLOCKS[b]?.pythonCode || b)
-    .join('\n');
-  const jsCode = program
-    .map((b) => ALL_BLOCKS[b]?.jsCode || b)
-    .join('\n');
+  const getFormattedCode = () => {
+    const pyLines: string[] = [];
+    const jsLines: string[] = [];
+    let i = 0;
+    while (i < program.length) {
+      const b = program[i];
+      if (isRepeatBlock(b)) {
+        const count = b === 'repeat_2' ? 2 : b === 'repeat_3' ? 3 : 4;
+        const child = program[i + 1];
+        if (child && !isRepeatBlock(child)) {
+          const childPy = ALL_BLOCKS[child]?.pythonCode || child;
+          const childJs = ALL_BLOCKS[child]?.jsCode || child;
+          pyLines.push(`for i in range(${count}):`);
+          pyLines.push(`    ${childPy}`);
+          jsLines.push(`for (let i = 0; i < ${count}; i++) {`);
+          jsLines.push(`  ${childJs}`);
+          jsLines.push(`}`);
+          i += 2;
+        } else {
+          pyLines.push(`for i in range(${count}):`);
+          pyLines.push(`    pass  # Boucle vide (aucune action)`);
+          jsLines.push(`for (let i = 0; i < ${count}; i++) {`);
+          jsLines.push(`  // Boucle vide`);
+          jsLines.push(`}`);
+          i += 1;
+        }
+      } else {
+        pyLines.push(ALL_BLOCKS[b]?.pythonCode || b);
+        jsLines.push(ALL_BLOCKS[b]?.jsCode || b);
+        i++;
+      }
+    }
+    return {
+      python: pyLines.join('\n'),
+      javascript: jsLines.join('\n'),
+    };
+  };
+
+  const { python: pythonCode, javascript: jsCode } = getFormattedCode();
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
